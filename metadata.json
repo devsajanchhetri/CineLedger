@@ -1,0 +1,6 @@
+{
+  "name": "CineLedger",
+  "description": "Netflix-inspired cinematographer event shoot, studio withdrawal, and lifetime earnings ledger",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

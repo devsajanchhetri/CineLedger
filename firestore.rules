@@ -1,0 +1,162 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1: Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isNumber(val) {
+      return val is int || val is float;
+    }
+
+    function isValidStudio(data) {
+      return data.keys().hasAll(['userId', 'name', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['userId', 'name', 'contactPerson', 'createdAt', 'updatedAt']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             (!('contactPerson' in data) || (data.contactPerson is string && data.contactPerson.size() <= 100)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidShootRecord(data) {
+      return data.keys().hasAll([
+               'userId', 'title', 'studioId', 'studioName', 'category',
+               'shootDateMillis', 'durationValue', 'durationUnit', 'earnings',
+               'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'title', 'studioId', 'studioName', 'category',
+               'shootDateMillis', 'location', 'durationValue', 'durationUnit',
+               'earnings', 'notes', 'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 150 &&
+             isValidId(data.studioId) &&
+             data.studioName is string && data.studioName.size() >= 1 && data.studioName.size() <= 100 &&
+             data.category is string && data.category in [
+               'Wedding', 'Commercial', 'Music Video', 'Corporate',
+               'Pre-Wedding', 'Documentary', 'Other'
+             ] &&
+             data.shootDateMillis is int && data.shootDateMillis > 0 &&
+             (!('location' in data) || (data.location is string && data.location.size() <= 150)) &&
+             isNumber(data.durationValue) && data.durationValue > 0 && data.durationValue <= 1000 &&
+             data.durationUnit is string && data.durationUnit in ['Days', 'Hours'] &&
+             isNumber(data.earnings) && data.earnings >= 0 && data.earnings <= 1000000000 &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 500)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidWithdrawalRecord(data) {
+      return data.keys().hasAll([
+               'userId', 'studioId', 'studioName', 'amount',
+               'withdrawalDateMillis', 'paymentMethod', 'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'studioId', 'studioName', 'amount',
+               'withdrawalDateMillis', 'paymentMethod', 'notes', 'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             isValidId(data.studioId) &&
+             data.studioName is string && data.studioName.size() >= 1 && data.studioName.size() <= 100 &&
+             isNumber(data.amount) && data.amount > 0 && data.amount <= 1000000000 &&
+             data.withdrawalDateMillis is int && data.withdrawalDateMillis > 0 &&
+             data.paymentMethod is string && data.paymentMethod in [
+               'Bank Transfer', 'UPI', 'Cash', 'Check', 'Wire'
+             ] &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 500)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      match /studios/{studioId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(studioId) && existing().userId == request.auth.uid;
+        allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(studioId) &&
+                         isValidStudio(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidStudio(incoming()) &&
+                         request.auth.uid == userId &&
+                         isValidId(studioId) &&
+                         existing().userId == request.auth.uid &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'contactPerson', 'updatedAt']);
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(studioId) && existing().userId == request.auth.uid;
+      }
+
+      match /shoots/{shootId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(shootId) && existing().userId == request.auth.uid;
+        allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(shootId) &&
+                         isValidShootRecord(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidShootRecord(incoming()) &&
+                         request.auth.uid == userId &&
+                         isValidId(shootId) &&
+                         existing().userId == request.auth.uid &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'studioId', 'studioName', 'category',
+                           'shootDateMillis', 'location', 'durationValue',
+                           'durationUnit', 'earnings', 'notes', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(shootId) && existing().userId == request.auth.uid;
+      }
+
+      match /withdrawals/{withdrawalId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(withdrawalId) && existing().userId == request.auth.uid;
+        allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(withdrawalId) &&
+                         isValidWithdrawalRecord(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidWithdrawalRecord(incoming()) &&
+                         request.auth.uid == userId &&
+                         isValidId(withdrawalId) &&
+                         existing().userId == request.auth.uid &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'studioId', 'studioName', 'amount',
+                           'withdrawalDateMillis', 'paymentMethod', 'notes', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(withdrawalId) && existing().userId == request.auth.uid;
+      }
+    }
+  }
+}

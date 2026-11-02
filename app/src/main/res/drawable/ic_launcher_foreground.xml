@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Cinema camera body & dual film reels in signature Netflix Crimson #E50914 and crisp White -->
+    <path
+        android:fillColor="#E50914"
+        android:pathData="M30,46 C30,42.69 32.69,40 36,40 L62,40 C65.31,40 68,42.69 68,46 L68,70 C68,73.31 65.31,76 62,76 L36,76 C32.69,76 30,73.31 30,70 Z" />
+    <path
+        android:fillColor="#E50914"
+        android:pathData="M68,52 L82,43 L82,73 L68,64 Z" />
+    <!-- Left Film Reel -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M39,31 m-9,0 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0" />
+    <path
+        android:fillColor="#0B0B0B"
+        android:pathData="M39,31 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <!-- Right Film Reel -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M59,29 m-11,0 a11,11 0 1,0 22,0 a11,11 0 1,0 -22,0" />
+    <path
+        android:fillColor="#0B0B0B"
+        android:pathData="M59,29 m-3.5,0 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0" />
+    <!-- Ascending Financial Ledger Bars inside Camera Body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,62 L43,62 L43,69 L38,69 Z M46.5,56 L51.5,56 L51.5,69 L46.5,69 Z M55,49 L60,49 L60,69 L55,69 Z" />
+</vector>

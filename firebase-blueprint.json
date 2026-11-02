@@ -1,0 +1,180 @@
+{
+  "entities": {
+    "Studio": {
+      "title": "Studio",
+      "description": "A production house or studio client for whom the cinematographer shoots events.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase user UID who owns this studio record."
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the studio or production company."
+        },
+        "contactPerson": {
+          "type": "string",
+          "description": "Optional producer or studio contact person details."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the studio was created (must submit FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the studio was last updated (must submit FieldValue.serverTimestamp())."
+        }
+      },
+      "required": ["userId", "name", "createdAt", "updatedAt"]
+    },
+    "ShootRecord": {
+      "title": "ShootRecord",
+      "description": "An event shoot project completed by the cinematographer with confirmed earnings.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase user UID who owns this shoot record."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the event or shoot project."
+        },
+        "studioId": {
+          "type": "string",
+          "description": "ID of the studio associated with this shoot."
+        },
+        "studioName": {
+          "type": "string",
+          "description": "Denormalized name of the studio for display."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Wedding", "Commercial", "Music Video", "Corporate", "Pre-Wedding", "Documentary", "Other"],
+          "description": "Event shoot category."
+        },
+        "shootDateMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds of the shoot date."
+        },
+        "location": {
+          "type": "string",
+          "description": "Venue or city where the shoot took place."
+        },
+        "durationValue": {
+          "type": "number",
+          "description": "Number of days or hours spent on the shoot."
+        },
+        "durationUnit": {
+          "type": "string",
+          "enum": ["Days", "Hours"],
+          "description": "Unit of shoot duration."
+        },
+        "earnings": {
+          "type": "number",
+          "description": "Confirmed total earnings for this shoot project."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional project or equipment notes."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the shoot was logged (must submit FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the shoot was last updated (must submit FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "studioId",
+        "studioName",
+        "category",
+        "shootDateMillis",
+        "durationValue",
+        "durationUnit",
+        "earnings",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WithdrawalRecord": {
+      "title": "WithdrawalRecord",
+      "description": "A payout withdrawal received by the cinematographer from a studio.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase user UID who owns this withdrawal record."
+        },
+        "studioId": {
+          "type": "string",
+          "description": "ID of the studio from which the withdrawal was received."
+        },
+        "studioName": {
+          "type": "string",
+          "description": "Denormalized name of the studio."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount withdrawn or collected from the studio."
+        },
+        "withdrawalDateMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds when the withdrawal occurred."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["Bank Transfer", "UPI", "Cash", "Check", "Wire"],
+          "description": "Method of payment for the studio withdrawal."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional payment reference or settlement notes."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the withdrawal was recorded (must submit FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the withdrawal was last updated (must submit FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "studioId",
+        "studioName",
+        "amount",
+        "withdrawalDateMillis",
+        "paymentMethod",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/studios/{studioId}": {
+      "schema": { "$ref": "#/entities/Studio" },
+      "description": "Per-user subcollection of studios and production houses."
+    },
+    "/users/{userId}/shoots/{shootId}": {
+      "schema": { "$ref": "#/entities/ShootRecord" },
+      "description": "Per-user subcollection of completed event shoots and project earnings."
+    },
+    "/users/{userId}/withdrawals/{withdrawalId}": {
+      "schema": { "$ref": "#/entities/WithdrawalRecord" },
+      "description": "Per-user subcollection of studio withdrawals and settlement transactions."
+    }
+  }
+}
